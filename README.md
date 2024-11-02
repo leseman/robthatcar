@@ -1,4 +1,5 @@
 # robthatcar
+![Rob That Car!](logo.webp)
 Top down shooter where you might steal a car or two...
 
 This first version (v0.1 alpha) includes:
