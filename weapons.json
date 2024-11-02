@@ -1,0 +1,31 @@
+{
+"weapons": [
+    {
+        "name": "Pistol",
+        "damage": 10,
+        "fire_rate": 60,
+        "ammo_capacity": 12,
+        "reload_time": 120,
+        "image": "images/pistol.png",
+        "sound": "sounds/shoot_pistol.wav"
+    },
+    {
+        "name": "Machine gun",
+        "damage": 10,
+        "fire_rate": 5,
+        "ammo_capacity": 30,
+        "reload_time": 190,
+        "image": "images/machinegun.png",
+        "sound": "sounds/shoot_pistol.wav"
+    },
+    {
+        "name": "Sniper rifle",
+        "damage": 30,
+        "fire_rate": 5,
+        "ammo_capacity": 8,
+        "reload_time": 300,
+        "image": "images/sniperrifle.png",
+        "sound": "sounds/shoot_pistol.wav"
+    }
+]
+}
