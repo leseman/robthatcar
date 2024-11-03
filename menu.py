@@ -230,6 +230,7 @@ class WeaponWheel:
         self.weapons = weapons
         self.active = False
         self.selected = 0
+        # Remove alpha channel for solid appearance
         self.wheel_surface = pygame.Surface((400, 400), pygame.SRCALPHA)
         self.center = (200, 200)
         self.radius = 150
@@ -238,81 +239,108 @@ class WeaponWheel:
         self.scaled_images = []
         for weapon in weapons:
             try:
-                # Scale to consistent size for wheel segments
-                scaled_image = pygame.transform.scale(weapon.image, (32, 32))
+                scaled_image = pygame.transform.scale(weapon.image, (48, 48))  # Slightly larger icons
                 self.scaled_images.append(scaled_image)
             except Exception as e:
                 print(f"Error scaling image for {weapon.name}: {e}")
-                # Create placeholder
-                placeholder = pygame.Surface((32, 32))
-                placeholder.fill(config.MAGENTA)
+                placeholder = pygame.Surface((48, 48))
+                placeholder.fill((100, 100, 100))  # Gray placeholder instead of magenta
                 self.scaled_images.append(placeholder)
 
     def draw(self, screen):
         if not self.active:
             return
 
-        # Clear the wheel surface
-        self.wheel_surface.fill((0, 0, 0, 0))
+        # Fill with dark background
+        self.wheel_surface.fill((30, 30, 40))  # Dark blue-gray background
 
-        # Calculate angles for segments based on number of weapons
         segment_angle = 2 * math.pi / len(self.weapons)
+        
+        # Draw outer circle first
+        pygame.draw.circle(self.wheel_surface, (50, 50, 60), self.center, self.radius + 20)
         
         # Draw segments and weapons
         for i, weapon in enumerate(self.weapons):
-            # Calculate angles for this segment
-            start_angle = i * segment_angle - math.pi / 2  # Start at top (-90 degrees)
+            start_angle = i * segment_angle - math.pi / 2
             end_angle = (i + 1) * segment_angle - math.pi / 2
             
-            # Draw segment background
-            segment_color = (200, 200, 200) if i != self.selected else (255, 255, 255)
+            # Draw segment with gradient effect
+            if i == self.selected:
+                segment_color = (80, 120, 180)  # Highlighted blue
+                border_color = (100, 160, 255)  # Bright blue border
+            else:
+                segment_color = (60, 60, 70)  # Dark gray
+                border_color = (80, 80, 90)  # Slightly lighter border
+            
+            # Draw main segment
             pygame.draw.arc(self.wheel_surface, segment_color, 
-                          (50, 50, 300, 300), start_angle, end_angle, 100)
+                          (60, 60, 280, 280), start_angle, end_angle, 80)
+            # Draw border
+            pygame.draw.arc(self.wheel_surface, border_color,
+                          (60, 60, 280, 280), start_angle, end_angle, 2)
 
-            # Calculate position for weapon icon
+            # Calculate positions
             mid_angle = (start_angle + end_angle) / 2
-            icon_distance = self.radius * 0.7  # Distance from center
-            icon_x = self.center[0] + math.cos(mid_angle) * icon_distance
-            icon_y = self.center[1] + math.sin(mid_angle) * icon_distance
             
             # Draw weapon icon
             if i < len(self.scaled_images):
                 image = self.scaled_images[i]
+                icon_distance = self.radius * 0.65
+                icon_x = self.center[0] + math.cos(mid_angle) * icon_distance
+                icon_y = self.center[1] + math.sin(mid_angle) * icon_distance
+                
+                # Draw icon background circle
+                pygame.draw.circle(self.wheel_surface, border_color, 
+                                (int(icon_x), int(icon_y)), 30)
+                
                 image_rect = image.get_rect(center=(int(icon_x), int(icon_y)))
                 self.wheel_surface.blit(image, image_rect)
             
-            # Draw weapon name
-            font = pygame.font.Font(None, 24)
-            name_text = font.render(weapon.name, True, (255, 255, 255))
-            # Position text closer to the center than the icon
-            text_distance = self.radius * 0.4
+            # Draw weapon name with better font and shadow
+            font = pygame.font.Font(None, 28)  # Slightly larger font
+            
+            # Draw shadow first
+            name_text_shadow = font.render(weapon.name, True, (0, 0, 0))
+            text_distance = self.radius * 0.35
             text_x = self.center[0] + math.cos(mid_angle) * text_distance
             text_y = self.center[1] + math.sin(mid_angle) * text_distance
+            text_rect_shadow = name_text_shadow.get_rect(center=(int(text_x + 2), int(text_y + 2)))
+            self.wheel_surface.blit(name_text_shadow, text_rect_shadow)
+            
+            # Draw actual text
+            name_text = font.render(weapon.name, True, (255, 255, 255))
             text_rect = name_text.get_rect(center=(int(text_x), int(text_y)))
             self.wheel_surface.blit(name_text, text_rect)
             
-            # Draw weapon stats
+            # Draw weapon stats with improved styling
             stats_text = f"DMG: {weapon.damage}"
-            stats = font.render(stats_text, True, (200, 200, 200))
-            # Position stats further from center than the icon
-            stats_distance = self.radius * 0.9
+            stats_font = pygame.font.Font(None, 24)
+            stats = stats_font.render(stats_text, True, (180, 180, 200))
+            stats_distance = self.radius * 0.85
             stats_x = self.center[0] + math.cos(mid_angle) * stats_distance
             stats_y = self.center[1] + math.sin(mid_angle) * stats_distance
             stats_rect = stats.get_rect(center=(int(stats_x), int(stats_y)))
             self.wheel_surface.blit(stats, stats_rect)
 
-        # Draw center indicator (arrow pointing to selected segment)
-        center_radius = 20
-        pygame.draw.circle(self.wheel_surface, (139, 69, 19), self.center, center_radius)
+        # Draw center hub
+        hub_radius = 40
+        pygame.draw.circle(self.wheel_surface, (50, 50, 60), self.center, hub_radius)  # Outer circle
+        pygame.draw.circle(self.wheel_surface, (80, 80, 90), self.center, hub_radius - 2)  # Inner circle
         
-        # Draw arrow
-        arrow_angle = self.selected * segment_angle - math.pi / 2
-        arrow_end_x = self.center[0] + math.cos(arrow_angle) * center_radius
-        arrow_end_y = self.center[1] + math.sin(arrow_angle) * center_radius
-        pygame.draw.line(self.wheel_surface, (0, 191, 255), 
-                        self.center, (arrow_end_x, arrow_end_y), 3)
+        # Draw selection indicator
+        if self.selected >= 0:
+            arrow_angle = self.selected * segment_angle - math.pi / 2
+            arrow_length = hub_radius - 5
+            arrow_end_x = self.center[0] + math.cos(arrow_angle) * arrow_length
+            arrow_end_y = self.center[1] + math.sin(arrow_angle) * arrow_length
+            
+            # Draw arrow with glow effect
+            pygame.draw.line(self.wheel_surface, (100, 160, 255), 
+                           self.center, (arrow_end_x, arrow_end_y), 4)
+            pygame.draw.line(self.wheel_surface, (200, 220, 255), 
+                           self.center, (arrow_end_x, arrow_end_y), 2)
 
-        # Draw the wheel on the main screen
+        # Position the wheel on screen with a slight fade effect around edges
         screen_pos = (
             screen.get_width() // 2 - self.wheel_surface.get_width() // 2,
             screen.get_height() // 2 - self.wheel_surface.get_height() // 2

@@ -1,6 +1,8 @@
 import pygame
 import os
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 WIDTH, HEIGHT = 1024, 768
 LEVEL_WIDTH, LEVEL_HEIGHT = 2432, 1856
 TILE_SIZE = 64
@@ -25,8 +27,8 @@ PLAYER_MAX_ARMOR = 50
 ARMOR_EFFECTIVENESS = 0.5
 
 image_files = {
-    "pistol": "images/pistol.png",
-    "machine_gun": "images/machinegun.png",
-    "armor": "images/armor.png",
-    "health": "images/health.png"
+    "pistol": os.path.join(PROJECT_ROOT, "images/pistol.png"),
+    "machine_gun": os.path.join(PROJECT_ROOT, "images/machinegun.png"),
+    "armor": os.path.join(PROJECT_ROOT, "images/armor.png"),
+    "health": os.path.join(PROJECT_ROOT, "images/health.png")
 }

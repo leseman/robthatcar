@@ -1,6 +1,7 @@
 import pygame
 pygame.init()
 import sys
+import os
 import math
 import config
 import enemy
@@ -18,13 +19,18 @@ from collections import defaultdict
 from sounds import sounds
 from os import path
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 loaded_images = {}
 
 for image_name, file_path in config.image_files.items():
     try:
-        loaded_images[image_name] = pygame.image.load(file_path).convert_alpha()
-    except pygame.error as e:
+        # Create absolute path for the image file
+        abs_path = os.path.join(PROJECT_ROOT, file_path)
+        loaded_images[image_name] = pygame.image.load(abs_path).convert_alpha()
+    except (pygame.error, FileNotFoundError) as e:
         print(f"Couldn't load image {file_path}: {e}")
+        print(f"Tried to load from: {abs_path}")
         loaded_images[image_name] = None
 
 class GameState:
@@ -89,6 +95,8 @@ class GameState:
     
     def switch_weapon(self):
         self.current_weapon_index = (self.current_weapon_index + 1) % len(self.weapons)
+        self._current_weapon = self.weapons[self.current_weapon_index]
+        sounds.play_sound('switch')
 
     def get_pistol(self):
         for weapon in self.weapons:

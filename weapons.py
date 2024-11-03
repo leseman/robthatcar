@@ -1,8 +1,11 @@
 import pygame
 import json
 import math
+import os
 from sounds import sounds
 import config
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 class Weapon:
     def __init__(self, name, damage, fire_rate, ammo_capacity, reload_time, image, sound):
@@ -99,21 +102,34 @@ def update_enemy_bullets(game_state):
                 break  # Stop checking other enemies for this bullet
 
 def load_weapons(filename):
-    with open(filename, 'r') as file:
-        data = json.load(file)
+    # Create absolute path for the JSON file
+    json_path = os.path.join(PROJECT_ROOT, filename)
+    
+    try:
+        with open(json_path, 'r') as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"Could not find weapons file at: {json_path}")
+        print(f"Current working directory: {os.getcwd()}")
+        print(f"Project root directory: {PROJECT_ROOT}")
+        return []
     
     weapons = []
     for weapon_data in data['weapons']:
         try:
-            image = pygame.image.load(weapon_data['image']).convert_alpha()
+            # Create absolute path for the weapon image
+            image_path = os.path.join(PROJECT_ROOT, weapon_data['image'])
+            image = pygame.image.load(image_path).convert_alpha()
         except pygame.error as e:
             print(f"Couldn't load image {weapon_data['image']}: {e}")
+            print(f"Tried to load from: {image_path}")
             image = pygame.Surface((32, 32))
             image.fill((255, 0, 255))
         
         # Load the weapon sound
         sound_name = f"weapon_{weapon_data['name'].lower().replace(' ', '_')}"
-        sounds.load_sound(sound_name, weapon_data['sound'])
+        sound_path = os.path.join(PROJECT_ROOT, weapon_data['sound'])
+        sounds.load_sound(sound_name, sound_path)
         
         weapon = Weapon(
             name=weapon_data['name'],
