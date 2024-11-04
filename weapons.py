@@ -35,8 +35,14 @@ class Weapon:
 def shoot(game_state, target_x, target_y):
     current_time = pygame.time.get_ticks()
     weapon = game_state.current_weapon
+
+    print(f"Trying to shoot with {weapon.name}")
+    print(f"  Current time: {current_time}")
+    print(f"  Last shot time: {weapon.last_shot_time}")
+    print(f"  Fire rate: {weapon.fire_rate}")
+    print(f"  Can fire: {weapon.can_fire(current_time)}")
     
-    if weapon.fire(current_time):
+    if weapon.can_fire(current_time):
         # Calculate bullet direction and velocity
         player_screen_x = game_state.player_pos[0] - game_state.camera_pos[0]
         player_screen_y = game_state.player_pos[1] - game_state.camera_pos[1]
@@ -52,7 +58,11 @@ def shoot(game_state, target_x, target_y):
         
         game_state.add_bullet(start_x, start_y, velocity_x, velocity_y, weapon.damage)
         sounds.play_sound(weapon.sound)
+        game_state.player_has_shot = True
+        weapon.last_shot_time = current_time
         return True
+    else:
+        print("Cannot fire yet, waiting for fire rate")
     return False
 
 def update_bullets(game_state):

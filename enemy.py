@@ -8,42 +8,90 @@ import logic
 
 ENEMY_SIZE = 30
 ENEMY_SPEED = 2
+ENEMY_HEALTH = 3
 ENEMY_SPAWN_RATE = 60
+ENEMY_BULLET_SPEED = 5
+ALERT_RADIUS = 200
 
 class Enemy:
     def __init__(self, x, y, game_state):
         self.pos = Vector2(x, y)
-        self.max_health = 3
+        self.max_health = ENEMY_HEALTH
         self.health = self.max_health
+        self.bullet_speed = ENEMY_BULLET_SPEED
         self.state = "walk"
         self.direction = Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
         self.rect = pygame.Rect(x, y, game_state.enemy_size, game_state.enemy_size)
         self.collision_cooldown = 0
-        self.state_timer = random.randint(60, 180)  # 1-3 seconds at 60 FPS
+        self.state_timer = random.randint(60, 180)
         self.has_gun = random.random() < 0.1  # 10% chance to have a gun
         self.shoot_cooldown = 0
+        self.is_alerted = False
+        self.alert_cooldown = 0  # Add cooldown for alert state
         self.game_state = game_state
         self.weapon = game_state.get_pistol() if self.has_gun else None
+        self.reaction_time = random.randint(30, 90) 
+
+        if self.weapon:
+            self.actual_fire_rate = int(self.weapon.fire_rate * random.uniform(0.9, 1.1))
+        else:
+            self.actual_fire_rate = 0
 
     def update(self):
         self.move()
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+        if self.alert_cooldown > 0:
+            self.alert_cooldown -= 1
         self.rect.x = self.pos.x
         self.rect.y = self.pos.y
+        
+        # Only shoot if alerted and after reaction time has passed
+        if self.is_alerted and self.has_gun and self.alert_cooldown <= 0:
+            self.shoot()
 
     def shoot(self):
         if self.weapon and self.shoot_cooldown <= 0:
-            direction = (Vector2(self.game_state.player_pos) - self.pos).normalize()
-            bullet_speed = 5  # Adjust as needed
-            bullet_pos = self.pos + direction * self.game_state.enemy_size
-            self.game_state.add_enemy_bullet(
-                bullet_pos.x, bullet_pos.y, 
-                direction.x * bullet_speed, direction.y * bullet_speed, 
-                self.weapon.damage
-            )
-            sounds.play_sound(self.weapon.sound)
-            self.shoot_cooldown = self.weapon.fire_rate * 3
+            # Calculate distance to player
+            distance = (Vector2(self.game_state.player_pos) - self.pos).length()
+            
+            # Only shoot if player is within range (adjust range as needed)
+            if distance < 300:  # Maximum shooting range
+                direction = (Vector2(self.game_state.player_pos) - self.pos).normalize()
+                bullet_pos = self.pos + direction * self.game_state.enemy_size
+                
+                # Add some inaccuracy based on distance
+                accuracy = 1 - (distance / 600)  # More accurate at closer range
+                angle_variation = random.uniform(-20 * (1 - accuracy), 20 * (1 - accuracy))
+                direction = direction.rotate(angle_variation)
+                
+                self.game_state.add_enemy_bullet(
+                    bullet_pos.x, bullet_pos.y, 
+                    direction.x * self.bullet_speed, 
+                    direction.y * self.bullet_speed, 
+                    self.weapon.damage
+                )
+                sounds.play_sound(self.weapon.sound)
+                self.shoot_cooldown = self.weapon.fire_rate
+    
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            self.game_state.remove_enemy(self)
+        
+        # Set alert state with reaction time delay
+        if not self.is_alerted:
+            self.is_alerted = True
+            self.alert_cooldown = self.reaction_time
+            self.alert_nearby_enemies()
+
+    def alert_nearby_enemies(self):
+        for enemy in self.game_state.enemies:
+            if enemy != self and enemy.has_gun and not enemy.is_alerted:
+                distance = self.pos.distance_to(enemy.pos)
+                if distance < ALERT_RADIUS:
+                    enemy.is_alerted = True
+                    enemy.alert_cooldown = enemy.reaction_time  # Give each enemy their own reaction time
 
     def move(self):
         if self.state == "walk":

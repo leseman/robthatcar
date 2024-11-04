@@ -68,6 +68,7 @@ class GameState:
         self.enemy_bullets = []
         self.shoot_cooldown = 0
         self.weapons = weapons.load_weapons('weapons.json')
+        self.player_has_shot = False
         self._current_weapon = None
         self.current_weapon_index = 0
         self.pistol = self.get_pistol() 
@@ -279,8 +280,6 @@ def game():
         # Draw enemies
         for enemy in game_state.enemies:
             enemy.draw(graphics.screen, game_state.camera_pos)
-            if enemy.has_gun:
-                enemy.shoot()
         
         # Draw bullets
         for bullet in game_state.bullets:

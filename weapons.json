@@ -3,7 +3,7 @@
     {
         "name": "Pistol",
         "damage": 10,
-        "fire_rate": 60,
+        "fire_rate": 1200,
         "ammo_capacity": 12,
         "reload_time": 120,
         "image": "images/pistol.png",
@@ -12,8 +12,8 @@
     {
         "name": "Machine gun",
         "damage": 10,
-        "fire_rate": 5,
-        "ammo_capacity": 30,
+        "fire_rate": 10,
+        "ammo_capacity": 100,
         "reload_time": 190,
         "image": "images/machinegun.png",
         "sound": "sounds/shoot_pistol.wav"
@@ -21,7 +21,7 @@
     {
         "name": "Sniper rifle",
         "damage": 30,
-        "fire_rate": 5,
+        "fire_rate": 3000,
         "ammo_capacity": 8,
         "reload_time": 300,
         "image": "images/sniperrifle.png",
