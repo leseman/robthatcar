@@ -8,7 +8,7 @@ import logic
 
 ENEMY_SIZE = 30
 ENEMY_SPEED = 2
-ENEMY_HEALTH = 3
+ENEMY_HEALTH = 5
 ENEMY_SPAWN_RATE = 60
 ENEMY_BULLET_SPEED = 5
 ALERT_RADIUS = 200
@@ -168,11 +168,11 @@ class Enemy:
             pygame.draw.rect(screen, color, fill_rect)
             pygame.draw.rect(screen, config.WHITE, outline_rect, 1)
 
-    def hit(self):    
+    def hit(self, damage=1):    
         if random.random() < 0.1:  # 10% chance of critical hit
             self.health = max(0, self.health - 2)  # Critical hit does extra damage
         else:
-            self.health -= 1
+            self.health = max(0, self.health - damage)
         
         if self.health > 0:
             sounds.play_sound("pain")
@@ -217,7 +217,7 @@ def update_enemies(game_state):
         for bullet in game_state.bullets[:]:
             if (enemy.pos.x < bullet[0] < enemy.pos.x + game_state.enemy_size and
                 enemy.pos.y < bullet[1] < enemy.pos.y + game_state.enemy_size):
-                enemy.hit()  # Use the hit() method instead of direct damage
+                enemy.hit(bullet[4])
                 game_state.remove_bullet(bullet)
                 if enemy.health <= 0:
                     # Calculate distance between player and enemy

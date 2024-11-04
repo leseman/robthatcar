@@ -35,34 +35,27 @@ class Weapon:
 def shoot(game_state, target_x, target_y):
     current_time = pygame.time.get_ticks()
     weapon = game_state.current_weapon
-
-    print(f"Trying to shoot with {weapon.name}")
-    print(f"  Current time: {current_time}")
-    print(f"  Last shot time: {weapon.last_shot_time}")
-    print(f"  Fire rate: {weapon.fire_rate}")
-    print(f"  Can fire: {weapon.can_fire(current_time)}")
     
     if weapon.can_fire(current_time):
-        # Calculate bullet direction and velocity
-        player_screen_x = game_state.player_pos[0] - game_state.camera_pos[0]
-        player_screen_y = game_state.player_pos[1] - game_state.camera_pos[1]
-        dx = target_x - player_screen_x
-        dy = target_y - player_screen_y
-        angle = math.atan2(dy, dx)
-        velocity_x = math.cos(angle) * game_state.bullet_speed
-        velocity_y = math.sin(angle) * game_state.bullet_speed
-        
-        # Spawn the bullet at the player's world position
-        start_x = game_state.player_pos[0] + math.cos(angle) * (game_state.player_size // 2)
-        start_y = game_state.player_pos[1] + math.sin(angle) * (game_state.player_size // 2)
-        
-        game_state.add_bullet(start_x, start_y, velocity_x, velocity_y, weapon.damage)
-        sounds.play_sound(weapon.sound)
-        game_state.player_has_shot = True
-        weapon.last_shot_time = current_time
-        return True
-    else:
-        print("Cannot fire yet, waiting for fire rate")
+        if weapon.fire(current_time):
+            # Calculate bullet direction and velocity
+            player_screen_x = game_state.player_pos[0] - game_state.camera_pos[0]
+            player_screen_y = game_state.player_pos[1] - game_state.camera_pos[1]
+            dx = target_x - player_screen_x
+            dy = target_y - player_screen_y
+            angle = math.atan2(dy, dx)
+            velocity_x = math.cos(angle) * game_state.bullet_speed
+            velocity_y = math.sin(angle) * game_state.bullet_speed
+            
+            # Spawn the bullet at the player's world position
+            start_x = game_state.player_pos[0] + math.cos(angle) * (game_state.player_size // 2)
+            start_y = game_state.player_pos[1] + math.sin(angle) * (game_state.player_size // 2)
+            
+            game_state.add_bullet(start_x, start_y, velocity_x, velocity_y, weapon.damage)
+            sounds.play_sound(weapon.sound)
+            game_state.player_has_shot = True
+            weapon.last_shot_time = current_time
+            return True
     return False
 
 def update_bullets(game_state):

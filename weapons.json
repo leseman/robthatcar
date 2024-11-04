@@ -2,7 +2,7 @@
 "weapons": [
     {
         "name": "Pistol",
-        "damage": 10,
+        "damage": 1,
         "fire_rate": 1200,
         "ammo_capacity": 12,
         "reload_time": 120,
@@ -11,7 +11,7 @@
     },
     {
         "name": "Machine gun",
-        "damage": 10,
+        "damage": 1,
         "fire_rate": 10,
         "ammo_capacity": 100,
         "reload_time": 190,
@@ -20,7 +20,7 @@
     },
     {
         "name": "Sniper rifle",
-        "damage": 30,
+        "damage": 3,
         "fire_rate": 3000,
         "ammo_capacity": 8,
         "reload_time": 300,
