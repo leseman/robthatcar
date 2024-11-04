@@ -191,7 +191,7 @@ class Minimap:
         self.BACKGROUND = (40, 40, 40, 180)  # Dark gray, semi-transparent
         self.BORDER = (200, 200, 200)  # Light gray
         self.PLAYER = (0, 255, 0)  # Green
-        self.ENEMY = (255, 0, 0)  # Red
+        self.NPC = (255, 0, 0)  # Red
         self.VIEWPORT = (255, 255, 255)  # White
 
     def world_to_minimap(self, x, y):
@@ -227,14 +227,14 @@ class Minimap:
         pygame.draw.circle(self.surface, self.PLAYER, 
                          (player_x, player_y), 2)
         
-        # Draw enemies
-        for enemy in game_state.enemies:
-            enemy_x, enemy_y = self.world_to_minimap(
-                enemy.pos.x,
-                enemy.pos.y
+        # Draw NPCs
+        for npc in game_state.npcs:
+            npc_x, npc_y = self.world_to_minimap(
+                npc.pos.x,
+                npc.pos.y
             )
-            pygame.draw.circle(self.surface, self.ENEMY, 
-                             (enemy_x, enemy_y), 2)
+            pygame.draw.circle(self.surface, self.NPC, 
+                             (npc_x, npc_y), 2)
         
         # Draw current viewport
         self.draw_viewport(self.surface, game_state.camera_pos, 

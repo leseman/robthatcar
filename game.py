@@ -4,8 +4,8 @@ import sys
 import os
 import math
 import config
-import enemy
-from enemy import update_enemies, spawn_enemy
+import npc as npc
+from npc import update_npcs, spawn_npc
 import inputs
 import logic
 import graphics
@@ -37,7 +37,7 @@ class GameState:
     def __init__(self):
         self.paused = False
         self.bullets = []
-        self.enemies = []
+        self.npcs = []
         self.weapons = []
         self.floating_scores = []
         self.score = config.START_SCORE
@@ -55,9 +55,9 @@ class GameState:
         self.camera_pos = [self.player_pos[0] - config.WIDTH // 2, self.player_pos[1] - config.HEIGHT // 2]
         self.player_size = player.PLAYER_SIZE
         self.player_speed = player.PLAYER_SPEED
-        self.enemy_size = enemy.ENEMY_SIZE
-        self.enemy_speed = enemy.ENEMY_SPEED
-        self.enemy_spawn_rate = enemy.ENEMY_SPAWN_RATE
+        self.npc_size = npc.NPC_SIZE
+        self.npc_speed = npc.NPC_SPEED
+        self.npc_spawn_rate = npc.NPC_SPAWN_RATE
         self.player_surface = self.create_player_surface()
         self.player_collision_cooldown = 0
         self.tilemap = maps.TileMap(config.LEVEL_WIDTH // config.TILE_SIZE, config.LEVEL_HEIGHT // config.TILE_SIZE)
@@ -65,7 +65,7 @@ class GameState:
         self.player_rect = pygame.Rect(self.player_pos[0], self.player_pos[1], self.player_size, self.player_size)
         self.bullet_speed = 10
         self.bullet_size = 5
-        self.enemy_bullets = []
+        self.npc_bullets = []
         self.shoot_cooldown = 0
         self.weapons = weapons.load_weapons('weapons.json')
         self.player_has_shot = False
@@ -119,14 +119,14 @@ class GameState:
     def remove_bullet(self, bullet):
         self.bullets.remove(bullet)
 
-    def add_enemy(self, enemy):
-        self.enemies.append(enemy)
+    def add_npc(self, npc):
+        self.npcs.append(npc)
 
-    def remove_enemy(self, enemy):
-        self.enemies.remove(enemy)
+    def remove_npc(self, npc):
+        self.npcs.remove(npc)
 
-    def add_enemy_bullet(self, x, y, vx, vy, damage):
-        self.enemy_bullets.append([x, y, vx, vy, damage])
+    def add_npc_bullet(self, x, y, vx, vy, damage):
+        self.npc_bullets.append([x, y, vx, vy, damage])
 
     def damage_player(self, damage):
         if self.player_armor > 0:
@@ -232,8 +232,8 @@ def game():
 
             # Update game state
             weapons.update_bullets(game_state)
-            weapons.update_enemy_bullets(game_state)
-            update_enemies(game_state)
+            weapons.update_npc_bullets(game_state)
+            update_npcs(game_state)
             logic.update_floating_scores(game_state)
             game_state.update_player_rect()
 
@@ -241,8 +241,8 @@ def game():
                 weapon_wheel.handle_mouse(pygame.mouse.get_pos())
         
             spawn_timer += 1
-            if spawn_timer >= game_state.enemy_spawn_rate:
-                spawn_enemy(game_state)
+            if spawn_timer >= game_state.npc_spawn_rate:
+                spawn_npc(game_state)
                 spawn_timer = 0
         
             if game_state.player_collision_cooldown > 0:
@@ -277,9 +277,9 @@ def game():
         player_rect = rotated_player.get_rect(center=player_screen_pos)
         graphics.screen.blit(rotated_player, player_rect)
         
-        # Draw enemies
-        for enemy in game_state.enemies:
-            enemy.draw(graphics.screen, game_state.camera_pos)
+        # Draw NPCs
+        for npc in game_state.npcs:
+            npc.draw(graphics.screen, game_state.camera_pos)
         
         # Draw bullets
         for bullet in game_state.bullets:
@@ -290,7 +290,7 @@ def game():
             pygame.draw.circle(graphics.screen, config.BULLET, bullet_screen_pos, game_state.bullet_size)
 
         
-        for bullet in game_state.enemy_bullets:
+        for bullet in game_state.npc_bullets:
             bullet_screen_pos = (
                 int(bullet[0] - game_state.camera_pos[0]),
                 int(bullet[1] - game_state.camera_pos[1])

@@ -70,15 +70,15 @@ def update_bullets(game_state):
             bullet[1] > game_state.camera_pos[1] + config.HEIGHT * 2):
             game_state.remove_bullet(bullet)
 
-def update_enemy_bullets(game_state):
-    for bullet in game_state.enemy_bullets[:]:
+def update_npc_bullets(game_state):
+    for bullet in game_state.npc_bullets[:]:
         bullet[0] += bullet[2]
         bullet[1] += bullet[3]
         
         # Remove bullets that are outside the level bounds
         if (bullet[0] < 0 or bullet[0] > config.LEVEL_WIDTH or
             bullet[1] < 0 or bullet[1] > config.LEVEL_HEIGHT):
-            game_state.enemy_bullets.remove(bullet)
+            game_state.npc_bullets.remove(bullet)
             continue
 
         bullet_rect = pygame.Rect(bullet[0] - game_state.bullet_size // 2, 
@@ -90,19 +90,19 @@ def update_enemy_bullets(game_state):
         if game_state.player_rect.colliderect(bullet_rect):
             game_state.damage_player(bullet[4])
             sounds.play_sound("pain")
-            game_state.enemy_bullets.remove(bullet)
+            game_state.npc_bullets.remove(bullet)
 
-        # Check collision with enemies
-        for enemy in game_state.enemies:
-            if enemy.rect.colliderect(bullet_rect):
-                enemy.hit()  # Enemy takes damage
-                if enemy.health > 0:
+        # Check collision with NPCs
+        for npc in game_state.npcs:
+            if npc.rect.colliderect(bullet_rect):
+                npc.hit()  # Enemy takes damage
+                if npc.health > 0:
                     sounds.play_sound("pain")
-                game_state.enemy_bullets.remove(bullet)
-                if enemy.health <= 0:
-                    game_state.remove_enemy(enemy)
+                game_state.npc_bullets.remove(bullet)
+                if npc.health <= 0:
+                    game_state.remove_npc(npc)
                     sounds.play_sound("dead")
-                break  # Stop checking other enemies for this bullet
+                break  # Stop checking other NPCs for this bullet
 
 def load_weapons(filename):
     # Create absolute path for the JSON file
@@ -147,8 +147,8 @@ def load_weapons(filename):
     
     return weapons
 
-def draw_enemy_bullets(screen, game_state):
-    for bullet in game_state.enemy_bullets:
+def draw_npc_bullets(screen, game_state):
+    for bullet in game_state.npc_bullets:
         bullet_screen_pos = (
             int(bullet[0] - game_state.camera_pos[0]),
             int(bullet[1] - game_state.camera_pos[1])

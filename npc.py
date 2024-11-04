@@ -6,22 +6,22 @@ import config
 from sounds import sounds
 import logic
 
-ENEMY_SIZE = 30
-ENEMY_SPEED = 2
-ENEMY_HEALTH = 5
-ENEMY_SPAWN_RATE = 60
-ENEMY_BULLET_SPEED = 5
+NPC_SIZE = 30
+NPC_SPEED = 2
+NPC_HEALTH = 5
+NPC_SPAWN_RATE = 60
+NPC_BULLET_SPEED = 5
 ALERT_RADIUS = 200
 
-class Enemy:
+class NPC:
     def __init__(self, x, y, game_state):
         self.pos = Vector2(x, y)
-        self.max_health = ENEMY_HEALTH
+        self.max_health = NPC_HEALTH
         self.health = self.max_health
-        self.bullet_speed = ENEMY_BULLET_SPEED
+        self.bullet_speed = NPC_BULLET_SPEED
         self.state = "walk"
         self.direction = Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
-        self.rect = pygame.Rect(x, y, game_state.enemy_size, game_state.enemy_size)
+        self.rect = pygame.Rect(x, y, game_state.npc_size, game_state.npc_size)
         self.collision_cooldown = 0
         self.state_timer = random.randint(60, 180)
         self.has_gun = random.random() < 0.1  # 10% chance to have a gun
@@ -58,14 +58,14 @@ class Enemy:
             # Only shoot if player is within range (adjust range as needed)
             if distance < 300:  # Maximum shooting range
                 direction = (Vector2(self.game_state.player_pos) - self.pos).normalize()
-                bullet_pos = self.pos + direction * self.game_state.enemy_size
+                bullet_pos = self.pos + direction * self.game_state.npc_size
                 
                 # Add some inaccuracy based on distance
                 accuracy = 1 - (distance / 600)  # More accurate at closer range
                 angle_variation = random.uniform(-20 * (1 - accuracy), 20 * (1 - accuracy))
                 direction = direction.rotate(angle_variation)
                 
-                self.game_state.add_enemy_bullet(
+                self.game_state.add_npc_bullet(
                     bullet_pos.x, bullet_pos.y, 
                     direction.x * self.bullet_speed, 
                     direction.y * self.bullet_speed, 
@@ -77,31 +77,31 @@ class Enemy:
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
-            self.game_state.remove_enemy(self)
+            self.game_state.remove_npc(self)
         
         # Set alert state with reaction time delay
         if not self.is_alerted:
             self.is_alerted = True
             self.alert_cooldown = self.reaction_time
-            self.alert_nearby_enemies()
+            self.alert_nearby_npcs()
 
-    def alert_nearby_enemies(self):
-        for enemy in self.game_state.enemies:
-            if enemy != self and enemy.has_gun and not enemy.is_alerted:
-                distance = self.pos.distance_to(enemy.pos)
+    def alert_nearby_npcs(self):
+        for npc in self.game_state.npcs:
+            if npc != self and npc.has_gun and not npc.is_alerted:
+                distance = self.pos.distance_to(npc.pos)
                 if distance < ALERT_RADIUS:
-                    enemy.is_alerted = True
-                    enemy.alert_cooldown = enemy.reaction_time  # Give each enemy their own reaction time
+                    npc.is_alerted = True
+                    npc.alert_cooldown = npc.reaction_time  # Give each NPC their own reaction time
 
     def move(self):
         if self.state == "walk":
-            self.pos += self.direction * self.game_state.enemy_speed
+            self.pos += self.direction * self.game_state.npc_speed
         elif self.state == "idle":
             pass  # Do nothing when idle
 
-        # Keep enemy within screen bounds
-        self.pos.x = max(0, min(self.pos.x, config.LEVEL_WIDTH - self.game_state.enemy_size))
-        self.pos.y = max(0, min(self.pos.y, config.LEVEL_HEIGHT - self.game_state.enemy_size))
+        # Keep NPC within screen bounds
+        self.pos.x = max(0, min(self.pos.x, config.LEVEL_WIDTH - self.game_state.npc_size))
+        self.pos.y = max(0, min(self.pos.y, config.LEVEL_HEIGHT - self.game_state.npc_size))
 
         if self.collision_cooldown > 0:
             self.collision_cooldown -= 1
@@ -133,28 +133,28 @@ class Enemy:
             self.pos.x - camera_pos[0],
             self.pos.y - camera_pos[1]
         )
-        # Render if the enemy is within or near the viewport
-        if (-self.game_state.enemy_size <= screen_pos[0] < config.WIDTH + self.game_state.enemy_size and
-            -self.game_state.enemy_size <= screen_pos[1] < config.HEIGHT + self.game_state.enemy_size):
+        # Render if the NPC is within or near the viewport
+        if (-self.game_state.npc_size <= screen_pos[0] < config.WIDTH + self.game_state.npc_size and
+            -self.game_state.npc_size <= screen_pos[1] < config.HEIGHT + self.game_state.npc_size):
             pygame.draw.rect(screen, config.RED, 
                              (screen_pos[0], screen_pos[1], 
-                              self.game_state.enemy_size, self.game_state.enemy_size))
+                              self.game_state.npc_size, self.game_state.npc_size))
             if self.has_gun:
                 gun_size = 10
                 pygame.draw.rect(screen, config.YELLOW, 
-                                 (screen_pos[0] + self.game_state.enemy_size - gun_size, 
+                                 (screen_pos[0] + self.game_state.npc_size - gun_size, 
                                   screen_pos[1], gun_size, gun_size))
             self.draw_health_bar(screen, camera_pos)
 
     def draw_health_bar(self, screen, camera_pos):
-        bar_width = self.game_state.enemy_size
+        bar_width = self.game_state.npc_size
         bar_height = 5
         fill = (self.health / self.max_health) * bar_width
         screen_pos = (self.pos.x - camera_pos[0], self.pos.y - camera_pos[1])
         
-        # Render if the enemy is within or near the viewport
-        if (-self.game_state.enemy_size <= screen_pos[0] < config.WIDTH + self.game_state.enemy_size and
-            -self.game_state.enemy_size <= screen_pos[1] < config.HEIGHT + self.game_state.enemy_size):
+        # Render if the NPC is within or near the viewport
+        if (-self.game_state.npc_size <= screen_pos[0] < config.WIDTH + self.game_state.npc_size and
+            -self.game_state.npc_size <= screen_pos[1] < config.HEIGHT + self.game_state.npc_size):
             outline_rect = pygame.Rect(int(screen_pos[0]), int(screen_pos[1]) - 10, bar_width, bar_height)
             fill_rect = pygame.Rect(int(screen_pos[0]), int(screen_pos[1]) - 10, fill, bar_height)
 
@@ -185,79 +185,79 @@ class Enemy:
             else:
                 self.behavior = "walk"
 
-def update_enemies(game_state):
-    for enemy in game_state.enemies[:]:
-        enemy.update()
+def update_npcs(game_state):
+    for npc in game_state.npcs[:]:
+        npc.update()
 
-        screen_pos = (enemy.pos.x - game_state.camera_pos[0], 
-                      enemy.pos.y - game_state.camera_pos[1])
+        screen_pos = (npc.pos.x - game_state.camera_pos[0], 
+                      npc.pos.y - game_state.camera_pos[1])
         if (screen_pos[0] < -config.WIDTH or screen_pos[0] > config.WIDTH*2 or 
             screen_pos[1] < -config.HEIGHT or screen_pos[1] > config.HEIGHT*2):
-            game_state.remove_enemy(enemy)
+            game_state.remove_npc(npc)
             continue
 
-        # Allow enemies with guns to shoot periodically
-        if enemy.has_gun and enemy.shoot_cooldown <= 0:
-            enemy.shoot()
+        # Allow NPCs with guns to shoot periodically CHECK THIS
+        if npc.has_gun and npc.shoot_cooldown <= 0:
+            npc.shoot()
 
         # Check for collisions with player
         player_rect = pygame.Rect(game_state.player_pos[0] - game_state.player_size // 2,
                                   game_state.player_pos[1] - game_state.player_size // 2,
                                   game_state.player_size, game_state.player_size)
-        enemy_rect = pygame.Rect(enemy.pos.x, enemy.pos.y, game_state.enemy_size, game_state.enemy_size)
+        npc_rect = pygame.Rect(npc.pos.x, npc.pos.y, game_state.npc_size, game_state.npc_size)
         
-        if player_rect.colliderect(enemy_rect):
-            # Move enemy away from player
-            direction = enemy.pos - Vector2(game_state.player_pos)
+        if player_rect.colliderect(npc_rect):
+            # Move NPC away from player
+            direction = npc.pos - Vector2(game_state.player_pos)
             if direction.length() > 0:
                 direction = direction.normalize()
-                enemy.pos += direction * game_state.enemy_speed
+                npc.pos += direction * game_state.npc_speed
         
         # Check for collisions with bullets
         for bullet in game_state.bullets[:]:
-            if (enemy.pos.x < bullet[0] < enemy.pos.x + game_state.enemy_size and
-                enemy.pos.y < bullet[1] < enemy.pos.y + game_state.enemy_size):
-                enemy.hit(bullet[4])
+            if (npc.pos.x < bullet[0] < npc.pos.x + game_state.npc_size and
+                npc.pos.y < bullet[1] < npc.pos.y + game_state.npc_size):
+                npc.hit(bullet[4])
                 game_state.remove_bullet(bullet)
-                if enemy.health <= 0:
-                    # Calculate distance between player and enemy
-                    dx = enemy.pos.x - game_state.player_pos[0]
-                    dy = enemy.pos.y - game_state.player_pos[1]
+                if npc.health <= 0:
+                    # Calculate distance between player and NPC
+                    dx = npc.pos.x - game_state.player_pos[0]
+                    dy = npc.pos.y - game_state.player_pos[1]
                     distance = math.sqrt(dx**2 + dy**2)
                     score = logic.calculate_score(distance, game_state)
                     game_state.score += score
                     sounds.play_sound("dead")
-                    game_state.add_floating_score(score, enemy.pos)
-                    game_state.remove_enemy(enemy)
+                    game_state.add_floating_score(score, npc.pos)
+                    game_state.remove_npc(npc)
                 break
 
-        # Check for collisions with other enemies
-        for other in game_state.enemies:
-            if enemy != other and enemy.collision_cooldown == 0 and other.collision_cooldown == 0:
-                distance = enemy.pos.distance_to(other.pos)
-                if distance < game_state.enemy_size:
+        # Check for collisions with other NPCs
+        for other in game_state.npcs:
+            if npc != other and npc.collision_cooldown == 0 and other.collision_cooldown == 0:
+                distance = npc.pos.distance_to(other.pos)
+                if distance < game_state.npc_size:
                     # Collision detected, change directions
                     if distance > 0:
-                        enemy.direction = (enemy.pos - other.pos).normalize()
-                        other.direction = -enemy.direction
+                        npc.direction = (npc.pos - other.pos).normalize()
+                        other.direction = -npc.direction
                     else:
                         # If distance is 0, give them random opposite directions
                         angle = random.uniform(0, 2 * math.pi)
-                        enemy.direction = Vector2(math.cos(angle), math.sin(angle))
-                        other.direction = -enemy.direction
+                        npc.direction = Vector2(math.cos(angle), math.sin(angle))
+                        other.direction = -npc.direction
                     
-                    # Move enemies apart slightly to prevent sticking
-                    separation = (enemy.direction * (game_state.enemy_size - distance + 1)) / 2
-                    enemy.pos += separation
+                    # Move NPCs apart slightly to prevent sticking
+                    separation = (npc.direction * (game_state.npc_size - distance + 1)) / 2
+                    npc.pos += separation
                     other.pos -= separation
                     
                     # Immediately change state after collision
-                    enemy.change_state()
+                    npc.change_state()
                     other.change_state()
 
-def spawn_enemy(game_state):
-    if len(game_state.enemies) < config.MAX_ENEMIES:
-        margin = 200  # Distance outside viewport to spawn enemies
+def spawn_npc(game_state):
+    if len(game_state.npcs) < config.MAX_NPCS:
+        margin = 200  # Distance outside viewport to spawn NPCs
         
         # Determine which sides are available for spawning
         available_sides = []
@@ -271,7 +271,7 @@ def spawn_enemy(game_state):
             available_sides.append("right")
         
         if not available_sides:
-            return  # No available sides to spawn enemies
+            return  # No available sides to spawn NPCs
         
         side = random.choice(available_sides)
         
@@ -289,30 +289,30 @@ def spawn_enemy(game_state):
             y = random.randint(int(game_state.camera_pos[1]), int(game_state.camera_pos[1] + config.HEIGHT))
         
         # Ensure spawn position is within level bounds
-        x = max(game_state.enemy_size // 2, min(x, config.LEVEL_WIDTH - game_state.enemy_size // 2))
-        y = max(game_state.enemy_size // 2, min(y, config.LEVEL_HEIGHT - game_state.enemy_size // 2))
+        x = max(game_state.npc_size // 2, min(x, config.LEVEL_WIDTH - game_state.npc_size // 2))
+        y = max(game_state.npc_size // 2, min(y, config.LEVEL_HEIGHT - game_state.npc_size // 2))
         
-        new_enemy = Enemy(x, y, game_state)
-        game_state.add_enemy(new_enemy)
+        new_npc = NPC(x, y, game_state)
+        game_state.add_npc(new_npc)
 
 def check_player_collision(game_state):
-    for enemy in game_state.enemies:
-        enemy_rect = pygame.Rect(enemy.pos.x, enemy.pos.y, game_state.enemy_size, game_state.enemy_size)
-        if game_state.player_rect.colliderect(enemy_rect):
-            # Calculate direction from player to enemy
-            direction = Vector2(enemy.pos.x - game_state.player_pos[0], 
-                                enemy.pos.y - game_state.player_pos[1])
+    for npc in game_state.npcs:
+        npc_rect = pygame.Rect(npc.pos.x, npc.pos.y, game_state.npc_size, game_state.npc_size)
+        if game_state.player_rect.colliderect(npc_rect):
+            # Calculate direction from player to NPC
+            direction = Vector2(npc.pos.x - game_state.player_pos[0], 
+                                npc.pos.y - game_state.player_pos[1])
             if direction.length() > 0:
                 direction = direction.normalize()
             
-            # Move enemy away from player
-            push_strength = max(game_state.enemy_size, game_state.player_size)
-            enemy.pos.x += direction.x * push_strength
-            enemy.pos.y += direction.y * push_strength
+            # Move NPC away from player
+            push_strength = max(game_state.npc_size, game_state.player_size)
+            npc.pos.x += direction.x * push_strength
+            npc.pos.y += direction.y * push_strength
             
-            # Change enemy direction
-            enemy.direction = direction  # Move away from player
-            enemy.change_state()  # Immediately change state after collision
+            # Change NPC direction
+            npc.direction = direction  # Move away from player
+            npc.change_state()  # Immediately change state after collision
 
             return False
     return False

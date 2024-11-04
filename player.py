@@ -46,11 +46,11 @@ def move_player(game_state, dx, dy):
                                   game_state.player_size, 
                                   game_state.player_size)
     
-    # Check collision with enemies
+    # Check collision with NPCs
     collision = False
-    for enemy in game_state.enemies:
-        enemy_rect = pygame.Rect(enemy.pos.x, enemy.pos.y, game_state.enemy_size, game_state.enemy_size)
-        if new_player_rect.colliderect(enemy_rect):
+    for npc in game_state.npcs:
+        npc_rect = pygame.Rect(npc.pos.x, npc.pos.y, game_state.npc_size, game_state.npc_size)
+        if new_player_rect.colliderect(npc_rect):
             collision = True
             break
 

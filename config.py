@@ -6,7 +6,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 WIDTH, HEIGHT = 1024, 768
 LEVEL_WIDTH, LEVEL_HEIGHT = 2432, 1856
 TILE_SIZE = 64
-MAX_ENEMIES = 20
+MAX_NPCS = 20
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
